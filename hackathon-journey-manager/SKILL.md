@@ -31,7 +31,7 @@ hackathon_programs
 | `hackathon_program_phases` | Phases within a program | `program_id`, `slug`, `title`, `phase_number`, `starts_at`, `ends_at`, `due_at` |
 | `hackathon_phase_activities` | Activities within a phase | `phase_id`, `title`, `instructions`, `display_order`, `estimated_minutes`, `is_required`, `is_draft` |
 | `hackathon_phase_activity_content` | Content items per activity | `activity_id`, `content_type`, `content_title`, `content_url`, `content_body`, `display_order`, `metadata` |
-| `hackathon_phase_activity_assessments` | Assessment per activity | `activity_id`, `assessment_type`, `points_possible`, `is_graded`, `metadata` |
+| `hackathon_phase_activity_assessments` | **Multiple** assessments per activity | `activity_id`, `assessment_type`, `display_order`, `points_possible`, `is_graded`, `metadata` |
 
 ### Content Types
 
@@ -46,9 +46,41 @@ hackathon_programs
 
 ### Assessment Types
 
-- `text_answer` — Written response (metadata: `min_words`, `submission_label`)
+- `text_answer` — Written response (metadata: `min_words`, `submission_label`, `prompt`, `placeholder`)
 - `file_upload` — File submission (metadata: `rubric`, `submission_label`)
 - `image_upload` — Image submission
+
+**Multiple Assessments Per Activity:**
+
+An activity can have multiple assessments, ordered by `display_order`:
+
+```typescript
+// Activity with 2 assessments
+await addActivityAssessment({
+  activity_id: activityId,
+  assessment_type: 'text_answer',
+  display_order: 0,
+  points_possible: 10,
+  is_graded: true,
+  metadata: {
+    submission_label: 'สิ่งที่คุณค้นพบ',
+    prompt: 'อธิบายปัญหาหลักที่คุณพบ',
+    placeholder: 'พิมพ์คำตอบที่นี่...'
+  }
+})
+
+await addActivityAssessment({
+  activity_id: activityId,
+  assessment_type: 'image_upload',
+  display_order: 1,
+  points_possible: 15,
+  is_graded: true,
+  metadata: {
+    submission_label: 'หลักฐานภาพ',
+    prompt: 'แนบรูปภาพประกอบ'
+  }
+})
+```
 
 ## API Functions
 
@@ -161,9 +193,11 @@ SELECT add_hackathon_activity_content(
   p_content_url := '/chat/career'
 )
 
+-- Add assessment (with display_order for multiple assessments)
 SELECT add_hackathon_activity_assessment(
   p_activity_id := '...',
   p_assessment_type := 'text_answer',
+  p_display_order := 0,  -- 0, 1, 2... for multiple assessments
   p_points_possible := 10,
   p_is_graded := true
 )
@@ -188,14 +222,23 @@ SELECT add_hackathon_activity_assessment(
   estimated_minutes: number,
   is_required: true,
   content: [
-    { content_type: 'text' | 'video' | 'ai_chat', ... },
-    { content_type: 'ai_chat', content_url: '/chat/...' }
+    { content_type: 'text' | 'video' | 'ai_chat', ... }
   ],
-  assessment: {
-    assessment_type: 'text_answer' | 'file_upload',
-    points_possible: number,
-    metadata: { min_words?, rubric?, submission_label? }
-  }
+  assessments: [  // Multiple assessments supported
+    { 
+      assessment_type: 'text_answer' | 'file_upload' | 'image_upload',
+      display_order: number,  // 0, 1, 2...
+      points_possible: number,
+      is_graded: boolean,
+      metadata: { 
+        submission_label?: string,
+        prompt?: string,
+        placeholder?: string,
+        min_words?: number,
+        rubric?: object
+      }
+    }
+  ]
 }
 ```
 
@@ -210,9 +253,48 @@ SELECT add_hackathon_activity_assessment(
 
 - **program_id required** — Must create `hackathon_programs` record first
 - **CASCADE deletes** — Deleting phase deletes all activities; deleting activity deletes content/assessments
-- **One assessment per activity** — `UNIQUE(activity_id)` constraint
+- **Multiple assessments** — Use `display_order` (0, 1, 2...) to order multiple assessments per activity
 - **Service role only** — Write operations require service role key (server-side)
-- **display_order** — Must set explicitly for content items within activity
+- **display_order** — Must set explicitly for both content items and assessments within an activity
+
+## Schema Changes (2026-04-02)
+
+**Multiple Assessments Per Activity**
+
+The `hackathon_phase_activity_assessments` table now supports multiple assessments per activity:
+
+- **Removed:** `UNIQUE(activity_id)` constraint
+- **Added:** `display_order int NOT NULL DEFAULT 0` column
+- **New constraint:** `UNIQUE(activity_id, display_order)`
+
+**Migration SQL:**
+```sql
+-- Remove old uniqueness constraint
+ALTER TABLE hackathon_phase_activity_assessments
+  DROP CONSTRAINT IF EXISTS hackathon_phase_activity_assessments_activity_id_key;
+
+-- Add display_order column
+ALTER TABLE hackathon_phase_activity_assessments
+  ADD COLUMN IF NOT EXISTS display_order int NOT NULL DEFAULT 0;
+
+-- Add new composite unique constraint
+ALTER TABLE hackathon_phase_activity_assessments
+  ADD CONSTRAINT hackathon_phase_activity_assessments_unique
+  UNIQUE (activity_id, display_order);
+```
+
+**Example — Activity with 2 assessments:**
+```sql
+INSERT INTO hackathon_phase_activity_assessments
+  (id, activity_id, assessment_type, display_order, points_possible, is_graded, metadata)
+VALUES
+  (gen_random_uuid(), '<activity_id>', 'text_answer', 0, null, false,
+   '{"submission_label": "สิ่งที่คุณค้นพบ", "prompt": "อธิบายปัญหาหลักที่คุณพบ", "placeholder": "พิมพ์คำตอบที่นี่..."}'::jsonb),
+  (gen_random_uuid(), '<activity_id>', 'image_upload', 1, null, false,
+   '{"submission_label": "หลักฐานภาพ", "prompt": "แนบรูปภาพประกอบ"}'::jsonb);
+```
+
+---
 
 ## Files
 
