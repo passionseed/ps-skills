@@ -6,27 +6,88 @@ Universal agent skills that work with **Droid (Factory)**, **Claude Code**, and 
 
 | Skill | Description |
 |-------|-------------|
+| `hackathon-journey-manager` | Manage hackathon programs, phases, activities, content, and assessments |
+| `hackathon-learning-activities` | Update hackathon learning activity content, naming, ordering, metadata, assessments, and production Supabase rows |
+| `thai-cinematic-comic-generation` | Generate cinematic portrait comic concepts, Thai captions, panel scripts, and hackathon-ready content payloads |
 | `pathlab-manager` | Manage expert interviews, PathLab content, seeds, paths, and Supabase data |
 
 ## Quick Install
 
-### Droid (Factory)
+### All Skills at Once
+
+```bash
+# Clone to your project
+git clone https://github.com/passionseed/ps-skills.git /tmp/ps-skills
+cp -r /tmp/ps-skills/* .claude/skills/
+```
+
+### Individual Skills
+
+#### hackathon-journey-manager
+```bash
+droid skills add hackathon-journey-manager https://github.com/passionseed/ps-skills/tree/main/hackathon-journey-manager
+```
+
+#### hackathon-learning-activities
+```bash
+droid skills add hackathon-learning-activities https://github.com/passionseed/ps-skills/tree/main/hackathon-learning-activities
+```
+
+#### thai-cinematic-comic-generation
+```bash
+droid skills add thai-cinematic-comic-generation https://github.com/passionseed/ps-skills/tree/main/thai-cinematic-comic-generation
+```
+
+#### pathlab-manager
 ```bash
 droid skills add pathlab-manager https://github.com/passionseed/ps-skills/tree/main/pathlab-manager
 ```
 
-### Claude Code
-```bash
-# Clone to your project's .claude/skills/ directory
-git clone https://github.com/passionseed/ps-skills.git /tmp/ps-skills
-cp -r /tmp/ps-skills/pathlab-manager .claude/skills/
-```
+## Skill Details
 
-Or add to your global Claude skills:
-```bash
-mkdir -p ~/.claude/skills
-git clone https://github.com/passionseed/ps-skills.git ~/.claude/skills/passionseed
-```
+### hackathon-journey-manager
+
+**Use when:** Creating or editing hackathon programs with multiple phases, activities, content, and assessments.
+
+**Features:**
+- Create hackathon programs with phases
+- Add activities to each phase
+- Configure content types (video, text, AI chat, webtoon, etc.)
+- Set up assessments and grading
+- Manage submission workflows
+
+### hackathon-learning-activities
+
+**Use when:** Updating hackathon learning activity content, metadata, assessments, or production Supabase rows.
+
+**Features:**
+- Update activity names and descriptions
+- Reorder activities within phases
+- Configure metadata and assessments
+- Sync to production Supabase
+- Generate preview fallbacks
+
+### thai-cinematic-comic-generation
+
+**Use when:** Generating comic-style learning content with Thai captions for hackathon activities.
+
+**Features:**
+- Generate cinematic portrait comic concepts
+- Create Thai-captioned storyboards
+- Write panel scripts with emotional beats
+- Prepare production-ready image prompts
+- Create DB-ready hackathon comic metadata
+
+### pathlab-manager
+
+**Use when:** Managing expert interviews, PathLab content, seeds, paths, and learning content in Supabase.
+
+**Features:**
+- View and edit expert interviews
+- Manage PathLab generation workflow
+- Handle seeds, paths, path_days, path_activities
+- Work with path_content and assessments
+- Admin-level Supabase operations
 
 ## Adding New Skills
 
@@ -64,5 +125,13 @@ description: Trigger description for the agent
 git pull origin main
 
 # Or re-add in Droid
-droid skills add pathlab-manager https://github.com/passionseed/ps-skills/tree/main/pathlab-manager --force
+droid skills add hackathon-journey-manager https://github.com/passionseed/ps-skills/tree/main/hackathon-journey-manager --force
 ```
+
+## Related Skills
+
+These skills work well together:
+
+- **hackathon-journey-manager** + **hackathon-learning-activities** — Create programs and manage content
+- **thai-cinematic-comic-generation** + **hackathon-learning-activities** — Generate comics and add to activities
+- **pathlab-manager** + **hackathon-journey-manager** — Manage both PathLab and hackathon content
