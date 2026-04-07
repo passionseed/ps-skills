@@ -9,6 +9,7 @@ Universal agent skills that work with **Droid (Factory)**, **Claude Code**, and 
 | `hackathon-journey-manager` | Manage hackathon programs, phases, activities, content, and assessments |
 | `hackathon-learning-activities` | Update hackathon learning activity content, naming, ordering, metadata, assessments, and production Supabase rows |
 | `thai-cinematic-comic-generation` | Generate cinematic portrait comic concepts, Thai captions, panel scripts, and hackathon-ready content payloads |
+| `webtoon-cutter` | Cut long webtoon images into chunks, upload to Supabase storage, generate DB-ready metadata |
 | `pathlab-manager` | Manage expert interviews, PathLab content, seeds, paths, and Supabase data |
 
 ## Quick Install
@@ -36,6 +37,11 @@ droid skills add hackathon-learning-activities https://github.com/passionseed/ps
 #### thai-cinematic-comic-generation
 ```bash
 droid skills add thai-cinematic-comic-generation https://github.com/passionseed/ps-skills/tree/main/thai-cinematic-comic-generation
+```
+
+#### webtoon-cutter
+```bash
+droid skills add webtoon-cutter https://github.com/passionseed/ps-skills/tree/main/webtoon-cutter
 ```
 
 #### pathlab-manager
@@ -77,6 +83,17 @@ droid skills add pathlab-manager https://github.com/passionseed/ps-skills/tree/m
 - Write panel scripts with emotional beats
 - Prepare production-ready image prompts
 - Create DB-ready hackathon comic metadata
+
+### webtoon-cutter
+
+**Use when:** Cutting long webtoon images into mobile-friendly chunks for hackathon activities.
+
+**Features:**
+- Cut tall images into fixed-height chunks using ImageMagick
+- Upload chunks to Supabase storage
+- Generate DB-ready metadata with URLs
+- Support uneven chunk heights
+- Optional live DB writeback
 
 ### pathlab-manager
 
@@ -134,4 +151,6 @@ These skills work well together:
 
 - **hackathon-journey-manager** + **hackathon-learning-activities** — Create programs and manage content
 - **thai-cinematic-comic-generation** + **hackathon-learning-activities** — Generate comics and add to activities
+- **thai-cinematic-comic-generation** + **webtoon-cutter** — Generate webtoon art and cut into chunks
+- **webtoon-cutter** + **hackathon-learning-activities** — Cut webtoon and add to activity content
 - **pathlab-manager** + **hackathon-journey-manager** — Manage both PathLab and hackathon content
