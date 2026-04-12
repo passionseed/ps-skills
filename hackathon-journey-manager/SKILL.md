@@ -35,20 +35,66 @@ hackathon_programs
 
 ### Content Types
 
-- `video` — Full-length video content
-- `short_video` — Short video clips
-- `canva_slide` — Canva presentation slides
-- `text` — Text content/instructions
-- `image` — Image content
-- `pdf` — PDF documents
-- `ai_chat` — AI-powered chat experiences (links to `/chat/*` routes)
-- `npc_chat` — NPC conversation journeys
+| Type | Description | File Formats |
+|------|-------------|--------------|
+| `video` | Full-length video content | .mp4, .mov, .avi |
+| `short_video` | Short video clips (<60 sec) | .mp4, .mov |
+| `canva_slide` | Canva presentation slides | Link to Canva |
+| `text` | Text content/instructions | Inline text |
+| `image` | Image content | .png, .jpg, .gif, .webp |
+| `pdf` | PDF documents | .pdf |
+| `ai_chat` | AI-powered chat experiences | Interactive (no file) |
+| `npc_chat` | NPC conversation journeys | Interactive (no file) |
+| `webtoon` | Comic/strip format (sequential images) | .png, .jpg |
 
 ### Assessment Types
 
-- `text_answer` — Written response (metadata: `min_words`, `submission_label`, `prompt`, `placeholder`)
-- `file_upload` — File submission (metadata: `rubric`, `submission_label`)
-- `image_upload` — Image submission
+| Type | Description | Metadata Fields |
+|------|-------------|-----------------|
+| `text_answer` | Written response | `min_words`, `submission_label`, `prompt`, `placeholder` |
+| `file_upload` | File submission | `rubric`, `submission_label`, `accepted_formats` |
+| `image_upload` | Image submission | `submission_label`, `prompt` |
+
+**Group vs Individual Submissions:**
+
+Use `metadata.is_group_submission` to determine if an assessment is team or individual:
+
+```typescript
+// Group/Team assessment
+await addActivityAssessment({
+  activity_id: activityId,
+  assessment_type: 'file_upload',
+  display_order: 0,
+  points_possible: 25,
+  is_graded: true,
+  metadata: {
+    submission_label: 'Evidence Bundle',
+    is_group_submission: true,  // ← Team submission 📦
+    prompt: 'Upload your team evidence'
+  }
+})
+
+// Individual/Solo assessment
+await addActivityAssessment({
+  activity_id: activityId,
+  assessment_type: 'text_answer',
+  display_order: 0,
+  points_possible: 10,
+  is_graded: true,
+  metadata: {
+    submission_label: 'Reflection',
+    is_group_submission: false,  // ← Individual submission 👤
+    min_words: 50
+  }
+})
+```
+
+**Frontend Display:**
+```typescript
+const isGroup = assessment.metadata?.is_group_submission ?? false;
+const icon = isGroup ? '📦' : '👤';
+const label = isGroup ? 'Group Submission' : 'Individual';
+```
 
 **Multiple Assessments Per Activity:**
 
@@ -256,6 +302,51 @@ SELECT add_hackathon_activity_assessment(
 - **Multiple assessments** — Use `display_order` (0, 1, 2...) to order multiple assessments per activity
 - **Service role only** — Write operations require service role key (server-side)
 - **display_order** — Must set explicitly for both content items and assessments within an activity
+- **Content type constraint** — `content_type` must be one of the 9 valid values (CHECK constraint)
+
+## Scoring System
+
+**Assessment Definition (Max Points):**
+
+```typescript
+{
+  assessment_type: 'file_upload',
+  points_possible: 25,      // ← Max points available
+  is_graded: true,          // ← Counts toward final score
+  metadata: {
+    is_group_submission: true,
+    submission_label: 'Evidence Bundle'
+  }
+}
+```
+
+**Database Columns:**
+
+| Table | Column | Type | Purpose |
+|-------|--------|------|---------|
+| `hackathon_phase_activity_assessments` | `points_possible` | `int` | Max points for assessment |
+| `hackathon_phase_activity_assessments` | `is_graded` | `bool` | Counts toward score |
+| `submission_grades` | `points_awarded` | `int` | Actual points given |
+| `submission_grades` | `grade` | `text` | Letter grade (A, B, pass) |
+| `submission_grades` | `comments` | `text` | Grader feedback |
+
+**Example Phase 1 Score Configuration:**
+
+| Activity | Assessment | Points | Type |
+|----------|------------|--------|------|
+| 2 | See the System | image_upload | 15 pts | 👤 |
+| 3 | Interview Real Humans | file_upload | 10 pts | 👤 |
+| 4 | Upload Evidence | file_upload | 25 pts | 📦 Group |
+| 6 | Decision Gate | text_answer | — | 📦 Group |
+| 7 | Problem Proof Pack | text_answer | — | 📦 Group |
+| **Total** | | **50 pts** | |
+
+**SQL to Set Points:**
+```sql
+UPDATE hackathon_phase_activity_assessments
+SET points_possible = 25, is_graded = true
+WHERE id = '<assessment_id>';
+```
 
 ## Schema Changes (2026-04-02)
 
