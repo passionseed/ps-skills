@@ -45,7 +45,45 @@ hackathon_programs
 | `pdf` | PDF documents | .pdf |
 | `ai_chat` | AI-powered chat experiences | Interactive (no file) |
 | `npc_chat` | NPC conversation journeys | Interactive (no file) |
-| `webtoon` | Comic/strip format (sequential images) | .png, .jpg |
+| `webtoon` | Comic/strip format (long vertical images) | .png, .jpg |
+
+**Long Webtoons (Multi-Part):**
+
+For long vertical webtoons, split into multiple content items with sequential `display_order`:
+
+```typescript
+// Part 1
+await addActivityContent({
+  activity_id: activityId,
+  content_type: 'webtoon',
+  content_title: 'The Mom Test Guide - Part 1',
+  content_url: '/images/mom-test-part1.png',
+  display_order: 0,
+  metadata: { webtoon_part: 1, webtoon_total: 3 }
+})
+
+// Part 2
+await addActivityContent({
+  activity_id: activityId,
+  content_type: 'webtoon',
+  content_title: 'The Mom Test Guide - Part 2',
+  content_url: '/images/mom-test-part2.png',
+  display_order: 1,
+  metadata: { webtoon_part: 2, webtoon_total: 3 }
+})
+
+// Part 3
+await addActivityContent({
+  activity_id: activityId,
+  content_type: 'webtoon',
+  content_title: 'The Mom Test Guide - Part 3',
+  content_url: '/images/mom-test-part3.png',
+  display_order: 2,
+  metadata: { webtoon_part: 3, webtoon_total: 3 }
+})
+```
+
+**Frontend:** Render as continuous scroll or swipeable sections.
 
 ### Assessment Types
 
