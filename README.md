@@ -11,6 +11,7 @@ Universal agent skills that work with **Droid (Factory)**, **Claude Code**, and 
 | `thai-cinematic-comic-generation` | Generate cinematic portrait comic concepts, Thai captions, panel scripts, and hackathon-ready content payloads |
 | `webtoon-cutter` | Cut long webtoon images into mobile-friendly chunks, upload them, and generate DB-ready metadata |
 | `pathlab-manager` | Manage expert interviews, PathLab content, seeds, paths, and Supabase data |
+| `company-brain` | Read company facts from the private `company-brain` repo and propose changes to it as pull requests |
 
 ## Quick Install
 
@@ -48,6 +49,19 @@ droid skills add webtoon-cutter https://github.com/passionseed/ps-skills/tree/ma
 ```bash
 droid skills add pathlab-manager https://github.com/passionseed/ps-skills/tree/main/pathlab-manager
 ```
+
+#### company-brain
+```bash
+droid skills add company-brain https://github.com/passionseed/ps-skills/tree/main/company-brain
+```
+
+Claude Code (keeps updating with `git pull`):
+```bash
+git clone https://github.com/passionseed/ps-skills.git ~/ps-skills
+ln -s ~/ps-skills/company-brain ~/.claude/skills/company-brain
+```
+
+Needs `gh` logged in with access to the private `passionseed/company-brain` repo.
 
 ## Skill Details
 
@@ -105,6 +119,16 @@ droid skills add pathlab-manager https://github.com/passionseed/ps-skills/tree/m
 - Handle seeds, paths, path_days, path_activities
 - Work with path_content and assessments
 - Admin-level Supabase operations
+
+### company-brain
+
+**Use when:** A task needs company facts (team, SHIFT, offers, prices, numbers, decisions) or someone asks to record one.
+
+**Features:**
+- Reads the latest `main` of the private `company-brain` repo
+- Cites pages and "as of" dates
+- Keeps unknowns unknown and flags conflicts instead of guessing
+- Proposes changes as pull requests that follow the brain's `AGENTS.md`
 
 ## Adding New Skills
 
